@@ -37,6 +37,31 @@ public class FighterController : MonoBehaviour
         }
     }
 
+    void PerformAttack(string attackType)
+    {
+        Debug.Log(myFighterData.characterName + " used: " + attackType);
+
+        // 1. Determine damage based on attack type
+        float damage = 0f;
+        if (attackType == "Light") damage = 5f;
+        if (attackType == "Heavy") damage = 15f;
+        // (Special and Ultimate will be handled differently later)
+
+        // 2. Draw an invisible circle at the attackPoint. Collect everything it hits on the Enemy layer.
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+
+        // 3. Loop through everything we hit and tell it to take damage
+        foreach (Collider2D enemy in hitEnemies)
+        {
+            // Try to find the DummyController script on the thing we hit
+            DummyController dummy = enemy.GetComponent<DummyController>();
+
+            if (dummy != null)
+            {
+                dummy.TakeDamage(damage);
+            }
+        }
+    }
     void Update()
     {
         if (myFighterData == null) return; // Don't do anything if no character is selected!
@@ -61,8 +86,8 @@ public class FighterController : MonoBehaviour
         if (!isBlocking)
         {
             // Light and Heavy attacks are handled by the Animator later
-            if (Input.GetKeyDown(KeyCode.H)) Debug.Log(myFighterData.characterName + " used Light Attack");
-            if (Input.GetKeyDown(KeyCode.J)) Debug.Log(myFighterData.characterName + " used Heavy Attack");
+            if (Input.GetKeyDown(KeyCode.H)) PerformAttack("Light");
+            if (Input.GetKeyDown(KeyCode.J)) PerformAttack("Heavy");
 
             if (Input.GetKeyDown(KeyCode.K)) UseSpecial();
             if (Input.GetKeyDown(KeyCode.L)) AttemptUltimate();
@@ -89,31 +114,6 @@ public class FighterController : MonoBehaviour
         }
     }
 
-    void PerformAttack(string attackType)
-    {
-        Debug.Log(myFighterData.characterName + " used: " + attackType);
-
-        // 1. Determine damage based on attack type
-        float damage = 0f;
-        if (attackType == "Light") damage = 5f;
-        if (attackType == "Heavy") damage = 15f;
-        // (Special and Ultimate will be handled differently later)
-
-        // 2. Draw an invisible circle at the attackPoint. Collect everything it hits on the Enemy layer.
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
-
-        // 3. Loop through everything we hit and tell it to take damage
-        foreach (Collider2D enemy in hitEnemies)
-        {
-            // Try to find the DummyController script on the thing we hit
-            DummyController dummy = enemy.GetComponent<DummyController>();
-
-            if (dummy != null)
-            {
-                dummy.TakeDamage(damage);
-            }
-        }
-    }
 
     // This is a special Unity function that lets you SEE the invisible hitbox in the Editor window!
     void OnDrawGizmosSelected()
